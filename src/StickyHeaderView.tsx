@@ -1,14 +1,18 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, forwardRef, Ref, useMemo } from "react";
 import { View, Animated, LayoutChangeEvent } from "react-native";
 import { useAnimatedScrollValue, useScrollViewRef } from "./EnhancedScrollView";
+import { setAndForwardRef } from "./helpers";
 
 interface StickyHeaderViewProps {
   children: React.ReactNode;
   stickyHeaderElement: React.ReactNode;
 }
 
-// A basic demonstration of what can be done with EnhancedScrollView.
-export default function StickyHeaderView(props: StickyHeaderViewProps) {
+// A basic-ish demonstration of what can be done with EnhancedScrollView.
+const StickyHeaderView = forwardRef(function StickyHeaderView(
+  props: StickyHeaderViewProps,
+  ref: Ref<View>
+) {
   const [
     { height, yOffset, outerMeasurementsInitialized },
     setOuterMeasurements,
@@ -41,11 +45,21 @@ export default function StickyHeaderView(props: StickyHeaderViewProps) {
   };
 
   const parentScrollViewRef = useScrollViewRef();
-  const outerViewRef = useRef<View>(null);
+  const outerViewRef = useRef<View>();
+  const setOuterViewRef = useMemo(
+    () =>
+      setAndForwardRef({
+        getForwardedRef: () => ref,
+        setLocalRef: (viewRef: View) => {
+          outerViewRef.current = viewRef;
+        },
+      }),
+    []
+  );
 
   return (
     <View
-      ref={outerViewRef}
+      ref={setOuterViewRef}
       onLayout={(e) => {
         const height = e.nativeEvent.layout.height;
         const parentViewNode = parentScrollViewRef.current
@@ -80,4 +94,6 @@ export default function StickyHeaderView(props: StickyHeaderViewProps) {
       {props.children}
     </View>
   );
-}
+});
+
+export default StickyHeaderView;

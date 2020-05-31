@@ -2,6 +2,10 @@
 
 React Native components and hooks for leveling up your scrollable views.
 
+Normally, when building scrollable views in React Native, all scroll-based behavior needs to be controlled through props to the ScrollView, FlatList, or SectionList. That means any animations, sticky headers, virtual list data, etc.
+
+`react-native-scrollables` turns that paradigm upside down: with the `EnhancedScrollView` component, child components can respond to scrolling and interact with their parent scrollable view. This means you can split up that logic among various reusable components, instead of having it all be concentrated at the top!
+
 ## Installation
 
 ```sh
@@ -10,7 +14,7 @@ yarn add react-native-scrollables
 
 ## Usage
 
-Actual docs to come! Check out the `example` folder for now.
+Actual docs to come! Check out the `example` directory for now.
 
 ```jsx
 // Create cool UIs through composition!
