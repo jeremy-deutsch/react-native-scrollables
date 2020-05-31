@@ -11,6 +11,7 @@ import {
   Animated,
   NativeSyntheticEvent,
   NativeScrollEvent,
+  NativeMethodsMixinStatic,
 } from "react-native";
 import { GetProps } from "./helpers";
 
@@ -62,6 +63,33 @@ const ScrollViewRefProvider = React.memo(ScrollViewRefContext.Provider);
  */
 export function useScrollViewRef() {
   return useContext(ScrollViewRefContext);
+}
+
+/*
+ * A React hook that returns a function for measuring the position of a host component
+ * (e.g. a View) inside an EnhancedScrollView. Right now this is implemented just using
+ * useScrollViewRef, but the React Native APIs for this kind of stuff are in flux right
+ * now, so it will likely be implemented differently in the future.
+ */
+export function useGetPositionInScrollView() {
+  const scrollViewRef = useContext(ScrollViewRefContext);
+  return (viewRef: NativeMethodsMixinStatic) => {
+    const scrollViewNode = scrollViewRef.current?.getNode()?.getInnerViewNode();
+    if (!scrollViewNode) {
+      return Promise.reject("No parent scroll view node found.");
+    }
+    return new Promise<{ x: number; y: number }>((resolve, reject) => {
+      viewRef.measureLayout(
+        scrollViewNode,
+        (x, y) => {
+          resolve({ x, y });
+        },
+        () => {
+          reject("Failed to measure layout in scroll view.");
+        }
+      );
+    });
+  };
 }
 
 const defaultValue = new Animated.Value(0);

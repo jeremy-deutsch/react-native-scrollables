@@ -6,7 +6,10 @@ import React, {
   useCallback,
   useMemo,
 } from "react";
-import { useAddScrollListener, useScrollViewRef } from "./EnhancedScrollView";
+import {
+  useAddScrollListener,
+  useGetPositionInScrollView,
+} from "./EnhancedScrollView";
 import { View, Dimensions } from "react-native";
 
 interface LazyListProps {
@@ -170,7 +173,7 @@ export default function LazyListFuture(props: LazyListProps) {
     ? props.elements.length - numItemsToShow
     : 0;
 
-  const parentScrollViewRef = useScrollViewRef();
+  const getPositionInScrollView = useGetPositionInScrollView();
 
   // use a new key for the end marker on every increment so onLayout always runs again
   // bc increasing the number of items doesn't necessarily change the end's y-position
@@ -196,31 +199,24 @@ export default function LazyListFuture(props: LazyListProps) {
         ref={(ref) => {
           lazyListEndMarkerRefAndKey.current = { key: endMarkerKey, ref };
         }}
-        onLayout={() => {
+        onLayout={async () => {
           const refAndKey = lazyListEndMarkerRefAndKey.current;
           // this is me being paranoid - since we're creating a new end marker element on
           // every increment, and onLayout runs asynchronously, I just want to be sure we
           // aren't measuring using a ref from a future render. this is also why we save
           // the end marker key along with the end marker ref
-          if (refAndKey?.key !== endMarkerKey) return;
-          const parentViewNode = parentScrollViewRef.current
-            ?.getNode()
-            ?.getInnerViewNode();
-          if (parentViewNode == null) return;
-          refAndKey.ref?.measureLayout(
-            parentViewNode,
-            (_, y) => {
-              listManagerRef.current?.onLayoutNewExpansion({
-                currentlyShowing: numItemsToShow,
-                distanceFromTop: y,
-                totalToShow: props.elements?.length,
-                onFullyLoaded: props.onFullyLoaded,
-              });
-            },
-            () => {
-              console.warn(`Measuring ${endMarkerKey} y-value failed`);
-            }
-          );
+          if (refAndKey?.key !== endMarkerKey || !refAndKey.ref) return;
+          try {
+            const { y } = await getPositionInScrollView(refAndKey.ref);
+            listManagerRef.current?.onLayoutNewExpansion({
+              currentlyShowing: numItemsToShow,
+              distanceFromTop: y,
+              totalToShow: props.elements?.length,
+              onFullyLoaded: props.onFullyLoaded,
+            });
+          } catch (e) {
+            console.warn(`Measuring ${endMarkerKey} y-value failed`, e);
+          }
         }}
       />
     </ListManagerContext.Provider>

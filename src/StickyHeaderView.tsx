@@ -1,6 +1,9 @@
 import React, { useState, useRef, forwardRef, Ref, useMemo } from "react";
 import { View, Animated, LayoutChangeEvent } from "react-native";
-import { useAnimatedScrollValue, useScrollViewRef } from "./EnhancedScrollView";
+import {
+  useAnimatedScrollValue,
+  useGetPositionInScrollView,
+} from "./EnhancedScrollView";
 import { setAndForwardRef } from "./helpers";
 
 interface StickyHeaderViewProps {
@@ -44,7 +47,7 @@ const StickyHeaderView = forwardRef(function StickyHeaderView(
     zIndex: 100,
   };
 
-  const parentScrollViewRef = useScrollViewRef();
+  const getPositionInScrollView = useGetPositionInScrollView();
   const outerViewRef = useRef<View>();
   const setOuterViewRef = useMemo(
     () =>
@@ -60,25 +63,19 @@ const StickyHeaderView = forwardRef(function StickyHeaderView(
   return (
     <View
       ref={setOuterViewRef}
-      onLayout={(e) => {
+      onLayout={async (e) => {
         const height = e.nativeEvent.layout.height;
-        const parentViewNode = parentScrollViewRef.current
-          ?.getNode()
-          ?.getInnerViewNode();
-        if (parentViewNode == null) return;
-        outerViewRef.current?.measureLayout(
-          parentViewNode,
-          (_, y) => {
-            setOuterMeasurements({
-              height,
-              yOffset: y,
-              outerMeasurementsInitialized: true,
-            });
-          },
-          () => {
-            console.warn(`Measuring sticky header y-value failed`);
-          }
-        );
+        if (!outerViewRef.current) return;
+        try {
+          const { y } = await getPositionInScrollView(outerViewRef.current);
+          setOuterMeasurements({
+            height,
+            yOffset: y,
+            outerMeasurementsInitialized: true,
+          });
+        } catch (e) {
+          console.warn("Measuring sticky header y-value failed", e);
+        }
       }}
     >
       {!!props.stickyHeaderElement && (
