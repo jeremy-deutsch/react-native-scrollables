@@ -3,11 +3,13 @@ import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import StickyHeaderExample from "./StickyHeaderExample";
 import LazyListExample from "./LazyListExample";
 import NestedLazyListExample from "./NestedLazyListExample";
+import CollapsibleSectionExample from "./CollapsibleSectionExample";
 
 enum Example {
   StickyHeaderExample,
   LazyListExample,
   NestedLazyListExample,
+  CollapsibleSectionExample,
 }
 
 export default function App() {
@@ -18,6 +20,8 @@ export default function App() {
   let exampleElement: React.ReactElement;
   if (exampleToShow === Example.StickyHeaderExample) {
     exampleElement = <StickyHeaderExample />;
+  } else if (exampleToShow === Example.CollapsibleSectionExample) {
+    exampleElement = <CollapsibleSectionExample />;
   } else if (exampleToShow === Example.LazyListExample) {
     exampleElement = <LazyListExample />;
   } else if (exampleToShow === Example.NestedLazyListExample) {
@@ -46,6 +50,12 @@ export default function App() {
           onPress={() => setExampleToShow(Example.StickyHeaderExample)}
         >
           <Text>Sticky Headers</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => setExampleToShow(Example.CollapsibleSectionExample)}
+        >
+          <Text>Collapsible Sections</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.button}

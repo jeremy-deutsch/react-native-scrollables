@@ -9,13 +9,11 @@ import { setAndForwardRef } from "./helpers";
 interface StickyHeaderViewProps {
   children: React.ReactNode;
   stickyHeaderElement: React.ReactNode;
+  viewRef?: React.Ref<View>;
 }
 
 // A basic-ish demonstration of what can be done with EnhancedScrollView.
-const StickyHeaderView = forwardRef(function StickyHeaderView(
-  props: StickyHeaderViewProps,
-  ref: Ref<View>
-) {
+export default function StickyHeaderView(props: StickyHeaderViewProps) {
   const [
     { height, yOffset, outerMeasurementsInitialized },
     setOuterMeasurements,
@@ -52,7 +50,7 @@ const StickyHeaderView = forwardRef(function StickyHeaderView(
   const setOuterViewRef = useMemo(
     () =>
       setAndForwardRef({
-        getForwardedRef: () => ref,
+        getForwardedRef: () => props.viewRef,
         setLocalRef: (viewRef: View) => {
           outerViewRef.current = viewRef;
         },
@@ -91,6 +89,4 @@ const StickyHeaderView = forwardRef(function StickyHeaderView(
       {props.children}
     </View>
   );
-});
-
-export default StickyHeaderView;
+}

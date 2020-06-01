@@ -2,7 +2,6 @@ import * as React from "react";
 import { EnhancedScrollView, LazyList } from "react-native-scrollables";
 import usStates from "./usStates.json";
 import ListItem from "./ListItem";
-import { Text } from "react-native";
 
 export default function LazyListExample() {
   return (

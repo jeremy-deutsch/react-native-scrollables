@@ -12,7 +12,8 @@ export function setAndForwardRef<T>({
   getForwardedRef: () =>
     | RefCallback<unknown>
     | MutableRefObject<unknown>
-    | null;
+    | null
+    | undefined;
   setLocalRef: (ref: T) => any;
 }) {
   return function forwardRef(ref: T) {
