@@ -11,7 +11,7 @@ import {
   Animated,
   NativeSyntheticEvent,
   NativeScrollEvent,
-  NativeMethodsMixinStatic,
+  NativeMethods,
 } from "react-native";
 import { GetProps } from "./helpers";
 
@@ -44,7 +44,7 @@ export function useAddScrollListener() {
 }
 
 const ScrollViewRefContext = createContext<
-  React.RefObject<AnimatedScrollView | null>
+  React.RefObject<{ getNode(): ScrollView } | null>
 >({
   get current() {
     if (__DEV__) {
@@ -73,7 +73,7 @@ export function useScrollViewRef() {
  */
 export function useGetPositionInScrollView() {
   const scrollViewRef = useContext(ScrollViewRefContext);
-  return (viewRef: NativeMethodsMixinStatic) => {
+  return (viewRef: NativeMethods) => {
     const scrollViewNode = scrollViewRef.current?.getNode()?.getInnerViewNode();
     if (!scrollViewNode) {
       return Promise.reject("No parent scroll view node found.");
@@ -130,7 +130,7 @@ export function useAnimatedScrollValue() {
 interface Props {
   children: React.ReactNode;
   animatedYTracker?: Animated.Value;
-  scrollViewRef?: { current: AnimatedScrollView | null };
+  scrollViewRef?: { current: { getNode(): ScrollView } | null };
 }
 
 /*
@@ -169,7 +169,7 @@ export default function EnhancedScrollView(
     [props.onScroll]
   );
 
-  const scrollViewRef = useRef<AnimatedScrollView | null>(null);
+  const scrollViewRef = useRef<{ getNode(): ScrollView } | null>(null);
 
   const animatedScrollX = useReactAnimatedValue(0);
   const animatedScrollY = useReactAnimatedValue(0);
@@ -215,9 +215,8 @@ export default function EnhancedScrollView(
         <ScrollViewAnimationProvider value={animatedContextObject}>
           <Animated.ScrollView
             scrollEventThrottle={16}
-            {...props}
-            // @ts-ignore for some reason Animated.ScrollView can't accept a ref prop
-            ref={(ref: AnimatedScrollView) => {
+            {...(props as any)}
+            ref={(ref: { getNode(): ScrollView } | null) => {
               scrollViewRef.current = ref;
               if (props.scrollViewRef) {
                 props.scrollViewRef.current = ref;

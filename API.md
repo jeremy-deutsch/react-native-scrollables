@@ -18,10 +18,10 @@ This component is the basis for this library. It wraps an animated [`ScrollView`
 
 `EnhancedScrollView` has two props besides `ScrollView`'s props:
 
-| Prop Name          | Type                            | Description                                                                                                                                                                                            | Required |
-| ------------------ | ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------- |
-| `scrollViewRef`    | `RefObject<AnimatedScrollView>` | A ref object that will be assigned a ref to the `EnhancedScrollView`'s internal `Animated.ScrollView`. Note that you need to call its `getNode()` method to get a ref to the `ScrollView` inside that. | No       |
-| `animatedYTracker` | `Animated.Value`                | An animated value that will be set to the scroll amount of the `EnhancedScrollView`                                                                                                                    | No       |
+| Prop Name          | Type                                   | Description                                                                                                                                                                                            | Required |
+| ------------------ | -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------- |
+| `scrollViewRef`    | `RefObject<{ getNode(): ScrollView }>` | A ref object that will be assigned a ref to the `EnhancedScrollView`'s internal `Animated.ScrollView`. Note that you need to call its `getNode()` method to get a ref to the `ScrollView` inside that. | No       |
+| `animatedYTracker` | `Animated.Value`                       | An animated value that will be set to the scroll amount of the `EnhancedScrollView`                                                                                                                    | No       |
 
 #### Example
 
@@ -44,7 +44,7 @@ A React hook that returns a React ref object containing the internal `Animated.S
 
 #### Type
 
-`() => RefObject<AnimatedScrollView>`
+`() => RefObject<{ getNode(): ScrollView }>`
 
 #### Example
 
