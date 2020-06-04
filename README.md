@@ -14,7 +14,7 @@ yarn add react-native-scrollables
 
 ## Usage
 
-Actual docs to come! Check out the `example` directory for now.
+### [API Docs](API.md)
 
 ```jsx
 // Create cool UIs through composition!
@@ -41,14 +41,14 @@ function StickyHeaderScreen({ lists }) {
 import { useAnimatedScrollValue } from "react-native-scrollables";
 
 function AnimatedHeaderImage({ source, style }) {
-  const animatedScrollValue = useAnimatedScrollValue();
+  const animatedScrollY = useAnimatedScrollValue().y;
   return (
     <Animated.Image
       source={source}
       style={[
         style,
         {
-          transform: [{ translateY: Animated.divide(animatedScrollValue, 2) }],
+          transform: [{ translateY: Animated.divide(animatedScrollY, 2) }],
         },
       ]}
     />
@@ -64,6 +64,8 @@ function ArticlePage({ imgSrc, title, text }) {
   );
 }
 ```
+
+The [`example`](example) directory shows off some other ways to use the library!
 
 ## License
 
