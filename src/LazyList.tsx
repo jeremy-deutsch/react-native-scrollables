@@ -135,7 +135,7 @@ class LazyListManager {
 
 const ListManagerContext = React.createContext<LazyListManager | null>(null);
 
-export default function LazyListFuture(props: LazyListProps) {
+export default function LazyList(props: LazyListProps) {
   const itemsToMountWith = useMemo(() => {
     if (props.itemsToMountWith) return props.itemsToMountWith;
     if (!props.avgItemHeight) return 1;
