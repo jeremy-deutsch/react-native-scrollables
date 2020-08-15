@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import {
   useGetPositionInScrollView,
   useScrollViewRef,
-  useAddScrollListener,
+  useScrollEvents,
   StickyHeaderView,
   EnhancedScrollView,
 } from "react-native-scrollables";
@@ -27,13 +27,7 @@ function CollapsibleSection(props: {
   const stickyHeaderViewRef = React.useRef<View>(null);
   const scrollViewRef = useScrollViewRef();
 
-  const scrollAmountRef = React.useRef(0);
-  const addScrollListener = useAddScrollListener();
-  React.useEffect(() => {
-    return addScrollListener((e) => {
-      scrollAmountRef.current = e.contentOffset.y;
-    });
-  }, [addScrollListener]);
+  const scrollEvents = useScrollEvents();
 
   const toggleCollapsed = async () => {
     if (!isCollapsed) {
@@ -45,8 +39,8 @@ function CollapsibleSection(props: {
         const { y } = await getPositionInScrollView(
           stickyHeaderViewRef.current
         );
-        if (scrollAmountRef.current > y) {
-          scrollViewRef.current?.getNode().scrollTo({ y, animated: false });
+        if (scrollEvents.latest && scrollEvents.latest.contentOffset.y > y) {
+          scrollViewRef.current?.scrollTo({ y, animated: false });
         }
       } catch (e) {
         console.warn("Getting the sticky header position failed", e);

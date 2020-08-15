@@ -2,6 +2,7 @@ export {
   default as EnhancedScrollView,
   useAnimatedScrollValue,
   useAddScrollListener,
+  useScrollEvents,
   useScrollViewRef,
   useGetPositionInScrollView,
 } from "./EnhancedScrollView";

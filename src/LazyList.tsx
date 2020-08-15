@@ -7,8 +7,8 @@ import React, {
   useMemo,
 } from "react";
 import {
-  useAddScrollListener,
   useGetPositionInScrollView,
+  useScrollEvents,
 } from "./EnhancedScrollView";
 import { View, Dimensions } from "react-native";
 
@@ -162,12 +162,12 @@ export default function LazyList(props: LazyListProps) {
     return listManagerRef.current?.registerWithParent();
   }, []);
 
-  const addScrollListener = useAddScrollListener();
+  const scrollEvents = useScrollEvents();
   useEffect(() => {
-    addScrollListener((scrollEvent) => {
+    return scrollEvents.subscribe((scrollEvent) => {
       listManagerRef.current?.onScroll(scrollEvent.contentOffset.y);
     });
-  }, []);
+  }, [scrollEvents]);
 
   const numItemsNotShown = props.elements
     ? props.elements.length - numItemsToShow

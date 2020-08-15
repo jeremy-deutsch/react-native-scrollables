@@ -21,31 +21,61 @@ interface ScrollListener {
   (event: NativeScrollEvent): void;
 }
 
-type AddScrollListenerContextValue = (listener: ScrollListener) => () => void;
-const AddScrollListenerContext = createContext<AddScrollListenerContextValue>(
-  () => {
+interface ScrollEventHandler {
+  latest: NativeScrollEvent | null;
+  subscribe(scrollListener: (event: NativeScrollEvent) => void): () => void;
+}
+
+const defaultScrollEventHandler: ScrollEventHandler = {
+  get latest() {
+    console.warn(
+      "Warning: tried to read the latest scroll event from outside a scrollable context"
+    );
+    return null;
+  },
+  subscribe() {
     if (__DEV__) {
       console.warn(
-        "Warning: tried to add a scroll listener from outside a scrollable context"
+        "Warning: tried to add a scroll event listener from outside a scrollable context"
       );
     }
     return () => {};
-  }
-);
-const AddScrollListenerProvider = React.memo(AddScrollListenerContext.Provider);
+  },
+};
 
-/*
- * A React hook that returns a function for subscribing to the scroll events of the
- * closest parent EnhancedScrollView. Use useAnimatedScrollValue() (not this) for
+const ScrollEventsContext = createContext<ScrollEventHandler>(
+  defaultScrollEventHandler
+);
+const ScrollEventsProvider = React.memo(ScrollEventsContext.Provider);
+
+/**
+ * A React hook that returns an object for reading and subscribing to the scroll events
+ * of the closest parent EnhancedScrollView. Use useAnimatedScrollValue() (not this) for
  * animations!
  */
-export function useAddScrollListener() {
-  return useContext(AddScrollListenerContext);
+export function useScrollEvents() {
+  return useContext(ScrollEventsContext);
 }
 
-const ScrollViewRefContext = createContext<
-  React.RefObject<{ getNode(): ScrollView } | null>
->({
+/**
+ * @deprecated
+ * A React hook that returns a function for subscribing to the scroll events of the
+ * closest parent EnhancedScrollView. This is deprecated and will be removed soon -
+ * use useScrollEvents() instead!
+ */
+export function useAddScrollListener() {
+  const hasWarnedAboutUseAddScrollListener = useRef(false);
+  if (__DEV__ && !hasWarnedAboutUseAddScrollListener.current) {
+    console.warn(
+      "useAddScrollListener is deprecated. Use useScrollEvents instead."
+    );
+    hasWarnedAboutUseAddScrollListener.current = true;
+  }
+  const scrollEvents = useScrollEvents();
+  return (listener: ScrollListener) => scrollEvents.subscribe(listener);
+}
+
+const ScrollViewRefContext = createContext<React.RefObject<ScrollView | null>>({
   get current() {
     if (__DEV__) {
       console.warn(
@@ -57,8 +87,8 @@ const ScrollViewRefContext = createContext<
 });
 const ScrollViewRefProvider = React.memo(ScrollViewRefContext.Provider);
 
-/*
- * A React hook that returns a React ref pointing to the AnimatedScrollView instance
+/**
+ * A React hook that returns a React ref pointing to the ScrollView instance
  * of the closest parent EnhancedScrollView.
  */
 export function useScrollViewRef() {
@@ -74,7 +104,7 @@ export function useScrollViewRef() {
 export function useGetPositionInScrollView() {
   const scrollViewRef = useContext(ScrollViewRefContext);
   return (viewRef: NativeMethods) => {
-    const scrollViewNode = scrollViewRef.current?.getNode()?.getInnerViewNode();
+    const scrollViewNode = scrollViewRef.current?.getInnerViewNode();
     if (!scrollViewNode) {
       return Promise.reject("No parent scroll view node found.");
     }
@@ -130,7 +160,7 @@ export function useAnimatedScrollValue() {
 interface Props {
   children: React.ReactNode;
   animatedYTracker?: Animated.Value;
-  scrollViewRef?: { current: { getNode(): ScrollView } | null };
+  scrollViewRef?: { current: ScrollView | null };
 }
 
 /*
@@ -146,30 +176,35 @@ interface Props {
 export default function EnhancedScrollView(
   props: Props & GetProps<typeof ScrollView>
 ) {
-  const scrollListenersRef = useRef<{ [id: number]: ScrollListener }>({});
-  const nextListenerIdRef = useRef(0);
-  const addScrollListener = useCallback((listener: ScrollListener) => {
-    const listenerId = nextListenerIdRef.current++;
-    scrollListenersRef.current[listenerId] = listener;
-    return () => {
-      delete scrollListenersRef.current[listenerId];
+  const scrollEventListenersRef = useRef(new Set<ScrollListener>());
+  const scrollEventHandlerRef = useRef<ScrollEventHandler>();
+  if (scrollEventHandlerRef.current == null) {
+    scrollEventHandlerRef.current = {
+      latest: null,
+      subscribe(listener: ScrollListener) {
+        scrollEventListenersRef.current.add(listener);
+        return () => {
+          scrollEventListenersRef.current.delete(listener);
+        };
+      },
     };
-  }, []);
+  }
 
   const onScroll = useCallback(
     function topLevelScrollListener(
       e: NativeSyntheticEvent<NativeScrollEvent>
     ) {
       const scrollEvent = e.nativeEvent;
+      (scrollEventHandlerRef.current as ScrollEventHandler).latest = scrollEvent;
       props.onScroll?.(e);
-      for (const listenerId in scrollListenersRef.current) {
-        scrollListenersRef.current[listenerId]?.(scrollEvent);
+      for (const listener of scrollEventListenersRef.current) {
+        listener(scrollEvent);
       }
     },
     [props.onScroll]
   );
 
-  const scrollViewRef = useRef<{ getNode(): ScrollView } | null>(null);
+  const scrollViewRef = useRef<ScrollView | null>(null);
 
   const animatedScrollX = useReactAnimatedValue(0);
   const animatedScrollY = useReactAnimatedValue(0);
@@ -210,16 +245,29 @@ export default function EnhancedScrollView(
   );
 
   return (
-    <AddScrollListenerProvider value={addScrollListener}>
+    <ScrollEventsProvider value={scrollEventHandlerRef.current}>
       <ScrollViewRefProvider value={scrollViewRef}>
         <ScrollViewAnimationProvider value={animatedContextObject}>
           <Animated.ScrollView
             scrollEventThrottle={16}
             {...(props as any)}
-            ref={(ref: { getNode(): ScrollView } | null) => {
-              scrollViewRef.current = ref;
+            ref={(ref: { getNode(): ScrollView } | ScrollView | null) => {
+              // older versions of RN require calling getNode() on the ref
+              if (ref && "scrollTo" in ref) {
+                scrollViewRef.current = ref;
+              } else {
+                scrollViewRef.current = ref?.getNode() ?? null;
+                if (__DEV__ && scrollViewRef.current) {
+                  // @ts-ignore
+                  scrollViewRef.current.getNode = () => {
+                    console.warn(
+                      "Warning: Stop using getNode() to read the parent ScrollView."
+                    );
+                  };
+                }
+              }
               if (props.scrollViewRef) {
-                props.scrollViewRef.current = ref;
+                props.scrollViewRef.current = scrollViewRef.current;
               }
             }}
             onScroll={animatedScrollEvent}
@@ -228,7 +276,7 @@ export default function EnhancedScrollView(
           </Animated.ScrollView>
         </ScrollViewAnimationProvider>
       </ScrollViewRefProvider>
-    </AddScrollListenerProvider>
+    </ScrollEventsProvider>
   );
 }
 

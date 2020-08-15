@@ -2,7 +2,7 @@ import React, { useRef, useReducer, useEffect } from "react";
 import { View, Dimensions } from "react-native";
 import {
   useGetPositionInScrollView,
-  useAddScrollListener,
+  useScrollEvents,
 } from "./EnhancedScrollView";
 
 const defaultHideDistance = Dimensions.get("window").height * 3;
@@ -32,10 +32,10 @@ export default function HideOffscreen(props: HideOffscreenProps) {
     willBeVisible: true,
   });
 
-  const addScrollListener = useAddScrollListener();
+  const scrollEvents = useScrollEvents();
   const hideDistance = props.hideDistance ?? defaultHideDistance;
   useEffect(() => {
-    addScrollListener((e) => {
+    return scrollEvents.subscribe(function hideOffscreenScrollListener(e) {
       if (yOffsetTopRef.current === null || heightRef.current === null) return;
       const yOffset = yOffsetTopRef.current;
       const scrollAmount = e.contentOffset.y;
@@ -45,7 +45,7 @@ export default function HideOffscreen(props: HideOffscreenProps) {
       if (shouldBeVisible) dispatch(SHOW_ACTION);
       else dispatch(HIDE_ACTION);
     });
-  }, [addScrollListener, hideDistance]);
+  }, [scrollEvents, hideDistance]);
 
   const areChildrenVisible = state.type === "initial" || state.isVisible;
 

@@ -1,7 +1,7 @@
 {
   "name": "react-native-scrollables",
-  "version": "0.1.0",
-  "description": "React Native components and hooks for making your scrollable views *fancy*",
+  "version": "0.2.0",
+  "description": "React Native components and hooks for building complex scrollable views",
   "main": "lib/commonjs/index.js",
   "module": "lib/module/index.js",
   "types": "lib/typescript/src/index.d.ts",

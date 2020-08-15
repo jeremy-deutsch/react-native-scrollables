@@ -5,7 +5,6 @@ import usStates from "./usStates.json";
 import ListItem from "./ListItem";
 
 export default function NestedLazyListExample() {
-  React.useState();
   return (
     <EnhancedScrollView>
       {/* using itemsToMountWith */}
