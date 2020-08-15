@@ -8,6 +8,7 @@
 - [useAddScrollListener](#useAddScrollListener)
 - [useGetPositionInScrollView](#useGetPositionInScrollView)
 - [LazyList](#LazyList)
+- [HideOffscreen](#HideOffscreen)
 - [StickyHeaderView](#StickyHeaderView)
 
 ## Core
@@ -187,9 +188,9 @@ These other components are built using the hooks listed above. They cover a coup
 
 ### `LazyList`
 
-Given a list of elements, `LazyList` renders only the elements that the user has reached by scrolling the nearest parent `EnhancedScrollView` (plus a couple elements below, so the user doesn't see a blank space). It starts by rendering as few elements as possible, then adding more and more elements as the user scrolls. It never stops rendering elements once it's started.
+Given a list of elements, `LazyList` renders only the elements that the user has reached by scrolling the nearest parent `EnhancedScrollView` (plus a couple elements below, so the user doesn't see a blank space). It starts by rendering as few elements as possible, then adding more and more elements as the user scrolls. It only ever adds elements as the user scrolls, and never hides or removes them.
 
-`LazyList` is basically an alternative to React Native's built-in `FlatList` and `SectionList`, except that it doesn't scroll by itself. To achieve something similar to `SectionList`, you can put `LazyList`s inside other `LazyList`s (and even put those inside other `LazyList`s).
+`LazyList` is basically an alternative to React Native's built-in `FlatList`, except that it's not scrollable on its own. To achieve something similar to React Native's `SectionList` instead, you can put `LazyList`s inside other `LazyList`s (and even put those inside other `LazyList`s).
 
 #### Props
 
@@ -213,6 +214,35 @@ function ListOfFacts({ facts, loadMoreFacts }) {
       ))}
       avgItemHeight={30}
       onFullyLoaded={loadMoreFacts}
+    />
+  );
+}
+```
+
+### `HideOffscreen`
+
+The `HideOffscreen` component replaces its children with blank padding when the user scrolls far away from it. If you have a very long list of smaller items, it's recommended to wrap each of them in a `HideOffscreen`, so that they aren't all rendered at once. You'll generally use these in conjunction with `LazyList`.
+
+#### Props
+
+| Prop Name      | Type     | Description                                                                                                           | Required |
+| -------------- | -------- | --------------------------------------------------------------------------------------------------------------------- | -------- |
+| `hideDistance` | `number` | A custom distance, in style units, from the edges of the screen at which to hide the children of the `HideOffscreen`. | No       |
+
+#### Example
+
+```jsx
+import { HideOffscreen, LazyList } from "react-native-scrollables";
+
+function ReallyLongListOfFacts({ soManyFacts }) {
+  return (
+    <LazyList
+      elements={soManyFacts.map((fact) => (
+        <HideOffscreen>
+          <FactText key={fact.key} text={fact.text} />
+        </HideOffscreen>
+      ))}
+      avgItemHeight={30}
     />
   );
 }
