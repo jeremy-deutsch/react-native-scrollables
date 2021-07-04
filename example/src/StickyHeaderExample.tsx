@@ -1,9 +1,19 @@
 import * as React from "react";
-import { StyleSheet, View, Text } from "react-native";
-import { EnhancedScrollView, StickyHeaderView } from "react-native-scrollables";
+import { StyleSheet, View, Text, Pressable } from "react-native";
+import {
+  EnhancedScrollView,
+  StickyHeaderView,
+  createAnchorHandle,
+  AnchorView,
+} from "react-native-scrollables";
 import ListItem from "./ListItem";
 
 export default function StickyHeaderExample() {
+  const planetAnchors = listData.planets.map(() => createAnchorHandle());
+  const countryAnchors = listData.southAmericanCountries.map(() =>
+    createAnchorHandle()
+  );
+
   return (
     <EnhancedScrollView style={styles.container}>
       <Text style={styles.contextText}>
@@ -12,35 +22,60 @@ export default function StickyHeaderExample() {
       <StickyHeaderView
         stickyHeaderElement={
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionHeaderText}>Planets</Text>
+            <Text style={styles.sectionHeaderText}>Mega-header</Text>
           </View>
         }
       >
-        {listData.planets.map((planet) => (
-          <ListItem
-            title={planet.name}
-            description={`Width: ${planet.width} mi`}
-          />
+        <Text>These are anchor links!</Text>
+        {planetAnchors.map((anchor, i) => (
+          <Pressable onPress={() => anchor.scrollTo()}>
+            <Text style={styles.link}>{listData.planets[i].name}</Text>
+          </Pressable>
         ))}
-      </StickyHeaderView>
-      <Text style={styles.contextText}>
-        And here's some text *in between* the sticky header list areas!
-      </Text>
-      <StickyHeaderView
-        stickyHeaderElement={
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionHeaderText}>
-              South American Countries
+        {countryAnchors.map((anchor, i) => (
+          <Pressable onPress={() => anchor.scrollTo()}>
+            <Text style={styles.link}>
+              {listData.southAmericanCountries[i].name}
             </Text>
-          </View>
-        }
-      >
-        {listData.southAmericanCountries.map((country) => (
-          <ListItem
-            title={country.name}
-            description={`Area: ${country.area} sq mi`}
-          />
+          </Pressable>
         ))}
+        <StickyHeaderView
+          stickyHeaderElement={
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionHeaderText}>Planets</Text>
+            </View>
+          }
+        >
+          {listData.planets.map((planet, i) => (
+            <AnchorView anchorHandle={planetAnchors[i]} key={planet.name}>
+              <ListItem
+                title={planet.name}
+                description={`Width: ${planet.width} mi`}
+              />
+            </AnchorView>
+          ))}
+        </StickyHeaderView>
+        <Text style={styles.contextText}>
+          And here's some text *in between* the sticky header list areas!
+        </Text>
+        <StickyHeaderView
+          stickyHeaderElement={
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionHeaderText}>
+                South American Countries
+              </Text>
+            </View>
+          }
+        >
+          {listData.southAmericanCountries.map((country, i) => (
+            <AnchorView anchorHandle={countryAnchors[i]} key={country.name}>
+              <ListItem
+                title={country.name}
+                description={`Area: ${country.area} sq mi`}
+              />
+            </AnchorView>
+          ))}
+        </StickyHeaderView>
       </StickyHeaderView>
     </EnhancedScrollView>
   );
@@ -76,6 +111,10 @@ const listData = {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  link: {
+    padding: 8,
+    color: "green",
   },
   sectionHeader: {
     width: "100%",
