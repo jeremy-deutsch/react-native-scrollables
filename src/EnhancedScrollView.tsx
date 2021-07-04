@@ -104,7 +104,8 @@ export function useScrollViewRef() {
 export function useGetPositionInScrollView() {
   const scrollViewRef = useContext(ScrollViewRefContext);
   return (viewRef: NativeMethods) => {
-    const scrollViewNode = scrollViewRef.current?.getInnerViewNode();
+    const scrollViewNode =
+      scrollViewRef.current?.getInnerViewNode() ?? scrollViewRef.current;
     if (!scrollViewNode) {
       return Promise.reject("No parent scroll view node found.");
     }
@@ -286,4 +287,32 @@ function useReactAnimatedValue(initial: number) {
     animatedScroll.current = new Animated.Value(initial);
   }
   return animatedScroll.current;
+}
+
+class ScrollViewMocker {
+  private scrollListeners = new Set<ScrollListener>();
+  private scrollEventHandler: ScrollEventHandler = {
+    latest: null,
+    subscribe: (listener: ScrollListener) => this.addScrollListener(listener),
+  };
+  private addScrollListener = (listener: ScrollListener) => {
+    this.scrollListeners.add(listener);
+    return () => {
+      this.scrollListeners.delete(listener);
+    };
+  };
+  sendScrollEvent(e: NativeScrollEvent) {
+    this.scrollEventHandler.latest = e;
+    this.scrollListeners.forEach((listener) => {
+      listener(e);
+    });
+  }
+
+  MockScrollView(props: { children: React.ReactNode }) {
+    return (
+      <ScrollEventsProvider value={this.scrollEventHandler}>
+        {props.children}
+      </ScrollEventsProvider>
+    );
+  }
 }

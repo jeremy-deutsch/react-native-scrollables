@@ -1,10 +1,20 @@
-import React, { useState, useRef, forwardRef, Ref, useMemo } from "react";
+import React, {
+  useState,
+  useRef,
+  useMemo,
+  createContext,
+  useContext,
+} from "react";
 import { View, Animated, LayoutChangeEvent } from "react-native";
 import {
   useAnimatedScrollValue,
   useGetPositionInScrollView,
 } from "./EnhancedScrollView";
 import { setAndForwardRef } from "./helpers";
+
+const StickyHeaderHeightContext = createContext(0);
+export const useStickyHeaderHeight = () =>
+  useContext(StickyHeaderHeightContext);
 
 interface StickyHeaderViewProps {
   children: React.ReactNode;
@@ -32,10 +42,15 @@ export default function StickyHeaderView(props: StickyHeaderViewProps) {
   // calculation isn't always exact on device so make sure it doesn't go below 0
   const nonHeaderHeight = Math.max(height - stickyHeaderHeight, 0);
 
+  const outerHeaderHeight = useStickyHeaderHeight();
   // offset the sticky header by the amount we've scrolled past the start of the outer view
   const stickyHeaderTranslateY = areValuesInitialized
     ? scrollY.interpolate({
-        inputRange: [-3000, yOffset, yOffset + nonHeaderHeight],
+        inputRange: [
+          -3000,
+          yOffset - outerHeaderHeight,
+          yOffset + nonHeaderHeight - outerHeaderHeight,
+        ],
         outputRange: [0, 0, nonHeaderHeight],
         extrapolate: "clamp",
       })
@@ -86,7 +101,15 @@ export default function StickyHeaderView(props: StickyHeaderViewProps) {
           {props.stickyHeaderElement}
         </Animated.View>
       )}
-      {props.children}
+      <StickyHeaderHeightContext.Provider
+        value={
+          areValuesInitialized
+            ? stickyHeaderHeight + outerHeaderHeight
+            : outerHeaderHeight
+        }
+      >
+        {props.children}
+      </StickyHeaderHeightContext.Provider>
     </View>
   );
 }

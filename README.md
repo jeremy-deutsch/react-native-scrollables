@@ -7,6 +7,7 @@ This library simplifies:
 - Putting any content in the middle of a list
 - 3-level lists (lists of lists of lists)
 - Reusing scroll animations or scroll behavior across screens
+- Scrolling to specific elements on a page
 - Everything related to sticky headers
 
 ## Installation
@@ -17,9 +18,9 @@ yarn add react-native-scrollables
 
 ## Usage
 
-### [API Docs](API.md)
+### [Check out the API Docs here!](API.md)
 
-Normally, when building scrollable views in React Native, all scroll-based behavior needs to be controlled through props to the ScrollView, FlatList, or SectionList. That means any animations, sticky headers, virtual list data, etc.
+Normally, when building scrollable views in React Native, all scroll-based behavior needs to be controlled through props to the ScrollView, FlatList, or SectionList. That means any animations, sticky headers, virtual list data, etc. These APIs can be a pain when you're building smaller, reusable components, or if you just want to make a UI that's a little more complex.
 
 `react-native-scrollables` turns that paradigm upside down: with the `EnhancedScrollView` component, child components can respond to scrolling and interact with their parent scrollable view. This means you can split up that logic among various reusable components, instead of having it all be concentrated at the top!
 
@@ -31,6 +32,8 @@ function StickyHeaderScreen({ lists }) {
   return (
     <EnhancedScrollView>
       {lists.map(({ title, items }) => (
+        {/* StickyHeaderView can even be part of another component! */}
+        {/* (and also be inside of another StickyHeaderView) */}
         <StickyHeaderView
           key={title}
           stickyHeaderElement={<Title>{title}</Title>}
@@ -54,9 +57,7 @@ function AnimatedHeaderImage({ source, style }) {
       source={source}
       style={[
         style,
-        {
-          transform: [{ translateY: Animated.divide(animatedScrollY, 2) }],
-        },
+        { transform: [{ translateY: Animated.divide(animatedScrollY, 2) }] },
       ]}
     />
   );
@@ -65,6 +66,7 @@ function AnimatedHeaderImage({ source, style }) {
 function ArticlePage({ imgSrc, title, text }) {
   return (
     <EnhancedScrollView>
+      {/* Now you can drop AnimatedHeaderImage into any scrollable page! */}
       <AnimatedHeaderImage source={imgSrc} style={{ width: "100%" }} />
       <ArticleBody title={title} text={text} />
     </EnhancedScrollView>

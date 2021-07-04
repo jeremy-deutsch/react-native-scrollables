@@ -142,9 +142,6 @@ export default function LazyList(props: LazyListProps) {
     return Math.ceil(Dimensions.get("window").height / props.avgItemHeight) + 1;
   }, []);
   const [numItemsToShow, setNumItemsToShow] = useState(itemsToMountWith);
-  const setNumItemsToShowIncreasing = useCallback((numItems: number) => {
-    setNumItemsToShow((prevItems) => Math.max(prevItems, numItems));
-  }, []);
 
   const parentListManager = useContext(ListManagerContext);
   const listManagerRef = useRef<LazyListManager>();
@@ -152,7 +149,9 @@ export default function LazyList(props: LazyListProps) {
     listManagerRef.current = new LazyListManager({
       currentlyShowing: numItemsToShow,
       totalToShow: props.elements.length,
-      setNumItemsToShow: setNumItemsToShowIncreasing,
+      setNumItemsToShow: (numItems) => {
+        setNumItemsToShow((prevItems) => Math.max(prevItems, numItems));
+      },
       parent: parentListManager,
       avgItemHeight: props.avgItemHeight,
     });
