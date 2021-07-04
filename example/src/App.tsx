@@ -5,6 +5,7 @@ import LazyListExample from "./LazyListExample";
 import NestedLazyListExample from "./NestedLazyListExample";
 import CollapsibleSectionExample from "./CollapsibleSectionExample";
 import HideOffscreenExample from "./HideOffscreenExample";
+import AnchorExample from "./AnchorExample";
 
 enum Example {
   StickyHeaderExample,
@@ -12,6 +13,7 @@ enum Example {
   NestedLazyListExample,
   CollapsibleSectionExample,
   HideOffscreenExample,
+  AnchorExample,
 }
 
 export default function App() {
@@ -30,6 +32,8 @@ export default function App() {
     exampleElement = <NestedLazyListExample />;
   } else if (exampleToShow === Example.HideOffscreenExample) {
     exampleElement = <HideOffscreenExample />;
+  } else if (exampleToShow === Example.AnchorExample) {
+    exampleElement = <AnchorExample />;
   } else {
     exampleElement = (
       <View style={{ flex: 1 }}>
@@ -78,6 +82,12 @@ export default function App() {
           onPress={() => setExampleToShow(Example.HideOffscreenExample)}
         >
           <Text>Hide Elements Offscreen</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => setExampleToShow(Example.AnchorExample)}
+        >
+          <Text>Anchors</Text>
         </TouchableOpacity>
       </View>
     </View>
